@@ -16,6 +16,17 @@ import org.springframework.core.io.ClassPathResource;
 @Slf4j
 public class StartWebGoat {
 
+    for (String arg : args) {
+        if (!isValidArgument(arg)) {
+            throw new IllegalArgumentException("Invalid argument: " + arg);
+        }
+    }
+
+    // Method to validate arguments
+    private static boolean isValidArgument(String arg) {
+        // Implement validation logic here, e.g., regex check
+        return arg.matches("^[a-zA-Z0-9-_]+$");
+    }
   public static void main(String[] args) {
     var parentBuilder =
         new SpringApplicationBuilder().parent(ParentConfig.class).web(WebApplicationType.NONE);
