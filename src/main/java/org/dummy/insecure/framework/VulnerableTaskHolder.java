@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 // TODO move back to lesson
 public class VulnerableTaskHolder implements Serializable {
 
-  private static final long serialVersionUID = 2;
+  private static final long serialVersionUID = 2;   private static final long serialVersionUID = 2;   private static final long serialVersionUID = 2; 
 
   private String taskName;
   private String taskAction;
