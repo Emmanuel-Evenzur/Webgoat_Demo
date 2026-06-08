@@ -30,7 +30,7 @@ jobs:
           curl -L -o mend https://downloads.mend.io/cli/linux_amd64/mend
           chmod +x mend
 
-      # 5) Run Mend scans + export SCA report
+      # 5) Run Mend scans: SCA+SAST+Image scan
       - name: Run Mend Scans and Generate Report
         env:
           MEND_USER_KEY: ${{ secrets.MEND_USER_KEY }}
@@ -65,9 +65,4 @@ jobs:
             --scope "$MEND_SCOPE" \
             --export-results sca-report.json
 
-      # 6) Upload SCA report artifact
-      - name: Upload SCA Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: sca-scan-report
-          path: sca-report.json
+  
