@@ -10,7 +10,7 @@ jobs:
     steps:
       # 1) Checkout source
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # 2) Set up Java 25 (required because Maven is configured with release 25)
       - name: Set up JDK 25
