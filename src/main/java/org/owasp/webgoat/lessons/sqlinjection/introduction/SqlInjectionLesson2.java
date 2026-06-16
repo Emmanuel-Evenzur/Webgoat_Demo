@@ -4,6 +4,7 @@
  */
 package org.owasp.webgoat.lessons.sqlinjection.introduction;
 
+import java.sql.PreparedStatement;
 import static java.sql.ResultSet.CONCUR_READ_ONLY;
 import static java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE;
 import static org.owasp.webgoat.container.assignments.AttackResultBuilder.failed;
@@ -44,9 +45,11 @@ public class SqlInjectionLesson2 implements AssignmentEndpoint {
   }
 
   protected AttackResult injectableQuery(String query) {
+    String sql = "SELECT * FROM your_table WHERE your_condition = ?"; // Adjust the query as needed
     try (var connection = dataSource.getConnection()) {
-      Statement statement = connection.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY);
-      ResultSet results = statement.executeQuery(query);
+      PreparedStatement preparedStatement = connection.prepareStatement(sql, TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY);
+      preparedStatement.setString(1, query);
+      ResultSet results = preparedStatement.executeQuery();
       StringBuilder output = new StringBuilder();
 
       results.first();
