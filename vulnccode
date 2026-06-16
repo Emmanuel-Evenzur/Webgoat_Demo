@@ -1,0 +1,120 @@
+package com.example;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+
+/**
+ * Intentionally vulnerable Java controller for security scanner testing.
+ * DO NOT use in production.
+ */
+public class VulnerableController {
+
+    // CWE-798: Hardcoded credentials
+    private static final String DB_PASSWORD = "SuperSecret123!";
+    private static final String API_KEY = "sk-live-abcdef1234567890";
+
+    // CWE-89: SQL Injection
+    public String getUserById(HttpServletRequest request) throws Exception {
+        String userId = request.getParameter("id");
+        Connection conn = DriverManager.getConnection(
+            "jdbc:mysql://localhost:3306/app", "root", DB_PASSWORD);
+        Statement stmt = conn.createStatement();
+        String query = "SELECT * FROM users WHERE id = " + userId;
+        ResultSet rs = stmt.executeQuery(query);
+        return rs.next() ? rs.getString("username") : "not found";
+    }
+
+    // CWE-78: OS Command Injection
+    public String pingHost(HttpServletRequest request) throws Exception {
+        String host = request.getParameter("host");
+        Process process = Runtime.getRuntime().exec("ping -c 4 " + host);
+        BufferedReader reader = new BufferedReader(
+            new InputStreamReader(process.getInputStream()));
+        StringBuilder output = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            output.append(line).append("\n");
+        }
+        return output.toString();
+    }
+
+    // CWE-22: Path Traversal
+    public byte[] readFile(HttpServletRequest request) throws Exception {
+        String filename = request.getParameter("file");
+        FileInputStream fis = new FileInputStream("/var/app/uploads/" + filename);
+        return fis.readAllBytes();
+    }
+
+    // CWE-79: Cross-Site Scripting (reflected)
+    public void greetUser(HttpServletRequest request, HttpServletResponse response)
+            throws Exception {
+        String name = request.getParameter("name");
+        response.setContentType("text/html");
+        response.getWriter().write("<h1>Hello, " + name + "!</h1>");
+    }
+
+    // CWE-327: Weak cryptographic hash (MD5)
+    public String hashPassword(String password) throws Exception {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] digest = md.digest(password.getBytes());
+        StringBuilder sb = new StringBuilder();
+        for (byte b : digest) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
+    // CWE-502: Insecure Deserialization
+    public Object deserializeData(HttpServletRequest request) throws Exception {
+        byte[] data = request.getInputStream().readAllBytes();
+        ObjectInputStream ois = new ObjectInputStream(
+            new java.io.ByteArrayInputStream(data));
+        return ois.readObject();
+    }
+
+    // CWE-918: Server-Side Request Forgery (SSRF)
+    public String fetchUrl(HttpServletRequest request) throws Exception {
+        String targetUrl = request.getParameter("url");
+        URL url = new URL(targetUrl);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        BufferedReader reader = new BufferedReader(
+            new InputStreamReader(conn.getInputStream()));
+        StringBuilder body = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            body.append(line);
+        }
+        return body.toString();
+    }
+
+    // CWE-611: XML External Entity (XXE)
+    public Document parseXml(HttpServletRequest request) throws Exception {
+        String xml = request.getParameter("xml");
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        return builder.parse(new java.io.ByteArrayInputStream(xml.getBytes()));
+    }
+
+    // CWE-532: Sensitive information in logs
+    public void login(HttpServletRequest request) {
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        System.out.println("Login attempt: user=" + username + " pass=" + password
+            + " apiKey=" + API_KEY);
+    }
+}
