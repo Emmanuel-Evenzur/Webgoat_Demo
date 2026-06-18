@@ -1,0 +1,81 @@
+/**
+ * Intentionally vulnerable code for security scanner / PR scan validation.
+ * DO NOT deploy or use in production.
+ */
+
+import { execSync } from 'child_process';
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import { Request, Response } from 'express';
+
+// CWE-798: Hardcoded credentials
+const ADMIN_PASSWORD = 'P@ssw0rd!admin';
+const JWT_SECRET = 'my-super-secret-jwt-key-do-not-share';
+
+// CWE-330: Use of cryptographically weak pseudo-random number generator
+export function generateSessionToken(): string {
+    return Math.random().toString(36).slice(2);
+}
+
+// CWE-327: Weak hash algorithm (MD5)
+export function hashUserPassword(password: string): string {
+    return crypto.createHash('md5').update(password).digest('hex');
+}
+
+// CWE-89: SQL injection via string concatenation (simulated query builder)
+export function buildUserLookupQuery(userId: string): string {
+    return `SELECT id, email FROM users WHERE id = ${userId}`;
+}
+
+// CWE-78: OS command injection
+export function runDiagnosticCommand(host: string): string {
+    return execSync(`nslookup ${host}`, { encoding: 'utf-8' });
+}
+
+// CWE-22: Path traversal
+export function readUserUpload(filename: string): Buffer {
+    const uploadsDir = path.join(__dirname, 'uploads');
+    const filePath = path.join(uploadsDir, filename);
+    return fs.readFileSync(filePath);
+}
+
+// CWE-79: Reflected XSS
+export function renderWelcomeBanner(name: string): string {
+    return `<html><body><h1>Welcome back, ${name}</h1></body></html>`;
+}
+
+// CWE-94: Code injection via eval
+export function evaluateUserExpression(expression: string): unknown {
+    return eval(expression);
+}
+
+// CWE-915: Prototype pollution
+export function mergeUserPreferences(
+    defaults: Record<string, unknown>,
+    userInput: Record<string, unknown>
+): Record<string, unknown> {
+    return Object.assign(defaults, userInput);
+}
+
+// CWE-918: Server-side request forgery
+export async function fetchRemotePreview(targetUrl: string): Promise<string> {
+    const response = await fetch(targetUrl);
+    return response.text();
+}
+
+// CWE-532: Logging sensitive data
+export function logAuthenticationAttempt(username: string, password: string): void {
+    console.log(`Auth failed for user=${username} password=${password} secret=${JWT_SECRET}`);
+}
+
+// CWE-601: Open redirect
+export function handleLegacyRedirect(req: Request, res: Response): void {
+    const destination = req.query.next as string;
+    res.redirect(destination);
+}
+
+// CWE-259: Hardcoded password in comparison
+export function isAdminLogin(username: string, password: string): boolean {
+    return username === 'admin' && password === ADMIN_PASSWORD;
+}
