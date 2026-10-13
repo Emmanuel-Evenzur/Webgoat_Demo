@@ -5,6 +5,7 @@
 package org.owasp.webgoat.server;
 
 
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.owasp.webgoat.container.WebGoat;
 import org.owasp.webgoat.webwolf.WebWolf;
@@ -17,6 +18,12 @@ import org.springframework.core.io.ClassPathResource;
 @Slf4j
 public class StartWebGoat {
 
+    Set<String> safeCommands = Set.of("start", "stop", "restart"); //TODO: add allowed commands here
+    for (String arg : args) {
+        if (!safeCommands.contains(arg)) {
+            throw new IllegalArgumentException("Unauthorized command: " + arg);
+        }
+    }
   public static void main(String[] args) {
     var parentBuilder =
         new SpringApplicationBuilder().parent(ParentConfig.class).web(WebApplicationType.NONE);
